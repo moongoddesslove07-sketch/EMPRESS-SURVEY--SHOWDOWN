@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Empress Lounge Survey Showdown</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d0e12;color:#f7f3e8;font-family:Arial,Helvetica,sans-serif}
+.wrap{max-width:1200px;margin:auto;padding:28px}.brand{text-align:center}.brand small{letter-spacing:.35em;font-weight:800;opacity:.7}.brand h1{margin:8px 0;font-size:42px}.brand p{opacity:.65}.board{background:linear-gradient(145deg,#14161b,#20232a);border:2px solid #b99650;border-radius:24px;padding:24px}.question{font-size:30px;font-weight:900;text-align:center;padding:18px;border-bottom:1px solid #3b3e46}.teams{display:flex;justify-content:space-between;align-items:center;padding:14px 8%;text-align:center}.score{font-size:48px;font-weight:1000}.label{font-size:12px;letter-spacing:.18em;opacity:.65}.xs{font-size:42px;font-weight:1000;min-width:150px;text-align:center}.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}.answer{min-height:68px;border:2px solid #b99650;border-radius:14px;background:#0e1014;color:#f7f3e8;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;font-size:23px;font-weight:900;cursor:pointer}.answer.hidden{justify-content:center}.answer:hover{background:#272a31}.controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px}.controls button{background:#17191e;color:#f7f3e8;border:1px solid #565a63;border-radius:10px;padding:11px 15px;font-weight:800;cursor:pointer}.controls button:hover{border-color:#b99650}.active{background:#b99650!important;color:#101114!important}.host{margin-top:20px;border-top:1px solid #3b3e46;padding-top:16px}.key{font-size:14px;line-height:1.7;opacity:.8}.fast{display:none;margin-top:20px}.fast.show{display:block}.fmrow{display:grid;grid-template-columns:1fr 90px;gap:10px;margin:8px 0}.fmrow input{width:100%;background:#0e1014;color:white;border:1px solid #565a63;border-radius:9px;padding:12px;font-size:18px}.total{text-align:center;font-size:32px;font-weight:1000;margin-top:12px}@media(max-width:700px){.wrap{padding:12px}.brand h1{font-size:30px}.question{font-size:22px}.answers{grid-template-columns:1fr}.answer{font-size:18px}.teams{padding:12px 2%}.score{font-size:36px}.xs{min-width:90px;font-size:30px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="brand"><small>👑 THE EMPRESS LOUNGE</small><h1>SURVEY SHOWDOWN</h1><p>Original live survey game</p></div>
+<div class="board">
+<div class="question" id="question"></div>
+<div class="teams">
+<div><div class="label">TEAM A</div><div class="score" id="scoreA">0</div></div>
+<div class="xs" id="xs"></div>
+<div><div class="label">TEAM B</div><div class="score" id="scoreB">0</div></div>
+</div>
+<div class="answers" id="answers"></div>
+<div class="controls">
+<button class="active team" data-team="A">TEAM A</button>
+<button class="team" data-team="B">TEAM B</button>
+<button id="wrong">❌ WRONG</button>
+<button id="steal">🏆 STEAL</button>
+<button id="next">NEXT ROUND</button>
+<button id="fast">⚡ FAST MONEY</button>
+<button id="reset">RESET GAME</button>
+</div>
+<div class="host"><div class="label">PRIVATE HOST ANSWER KEY</div><div class="key" id="key"></div></div>
+</div>
+<div class="board fast" id="fastPanel">
+<div class="brand"><small>FINAL ROUND</small><h2>⚡ FAST MONEY</h2></div>
+<div id="fm"></div>
+<div class="controls"><button id="calc" class="active">CALCULATE TOTAL</button><button id="fmReset">RESET FAST MONEY</button></div>
+<div class="total" id="total">TOTAL: 0</div>
+</div>
+</div>
+<script>
+const rounds=[
+{q:"Name something people do when they're trying to get over an ex.",a:[["Block them",32],["Cry",24],["Go out with friends",17],["Date someone new",12],["Work out",8],["Delete pictures",7]]},
+{q:"Name something people always forget when they leave the house.",a:[["Keys",34],["Phone",25],["Wallet",16],["Charger",10],["Sunglasses",8],["Water bottle",7]]},
+{q:"Name something people do when they have a crush.",a:[["Check their social media",31],["Smile a lot",22],["Text them",18],["Act nervous",12],["Talk about them",10],["Dress up",7]]}
+];
+const fast=[["Name something you do before going on a date.",30],["Name a reason someone might be late.",25],["Name something people eat for breakfast.",20],["Name something you keep beside your bed.",15],["Name something people do on a Friday night.",10]];
+let round=0,team="A",scoreA=0,scoreB=0,strikes=0;
+const $=id=>document.getElementById(id);
+function render(){
+ const d=rounds[round];$("question").textContent=d.q;$("xs").textContent="";strikes=0;
+ $("answers").innerHTML="";
+ d.a.forEach((v,i)=>{let b=document.createElement("button");b.className="answer hidden";b.textContent="ANSWER "+(i+1);b.onclick=()=>reveal(b,i);$("answers").appendChild(b)});
+ $("key").innerHTML=d.a.map((v,i)=>`${i+1}. <b>${v[0]}</b> — ${v[1]}`).join(" &nbsp; • &nbsp; ");
+}
+function reveal(b,i){if(!b.classList.contains("hidden"))return;let v=rounds[round].a[i];b.classList.remove("hidden");b.innerHTML=`<span>${v[0]}</span><span>${v[1]}</span>`;if(team==="A"){scoreA+=v[1];$("scoreA").textContent=scoreA}else{scoreB+=v[1];$("scoreB").textContent=scoreB}}
+document.querySelectorAll(".team").forEach(b=>b.onclick=()=>{team=b.dataset.team;document.querySelectorAll(".team").forEach(x=>x.classList.toggle("active",x===b))});
+$("wrong").onclick=()=>{if(strikes<3){strikes++;$("xs").textContent="❌".repeat(strikes)}};
+$("steal").onclick=()=>{team=team==="A"?"B":"A";strikes=0;$("xs").textContent="STEAL! TEAM "+team;document.querySelectorAll(".team").forEach(b=>b.classList.toggle("active",b.dataset.team===team))};
+$("next").onclick=()=>{round=(round+1)%rounds.length;render()};
+$("reset").onclick=()=>{round=0;scoreA=0;scoreB=0;$("scoreA").textContent=0;$("scoreB").textContent=0;render()};
+$("fast").onclick=()=>$("fastPanel").classList.toggle("show");
+$("fm").innerHTML=fast.map((x,i)=>`<div class="fmrow"><div class="answer">${x[0]}</div><input type="number" min="0" max="100" value="0" aria-label="Points ${i+1}"></div>`).join("");
+$("calc").onclick=()=>{let t=0;$("fm").querySelectorAll("input").forEach(i=>t+=Math.max(0,Math.min(100,Number(i.value)||0)));$("total").textContent="TOTAL: "+t};
+$("fmReset").onclick=()=>{$("fm").querySelectorAll("input").forEach(i=>i.value=0);$("total").textContent="TOTAL: 0"};
+render();
+</script>
+</body>
+</html>
