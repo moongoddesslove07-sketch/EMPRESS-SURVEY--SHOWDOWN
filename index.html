@@ -92,7 +92,7 @@ async function setupRealtime(){
   try{
     const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
     channel=sb.channel("empress-showdown-"+ROOM_ID,{config:{broadcast:{ack:true}}});
-    channel.on("broadcast",{event:"game_state"},payload=>{if(IS_AUDIENCE)applyState(payload.payload||payload,false);});
+    channel.on("broadcast",{event:"game_state"},payload=>{if(IS_AUDIENCE)applyState(payload.payload||payload,true);});
     channel.on("broadcast",{event:"request_state"},async()=>{if(!IS_AUDIENCE)await send();});
     channel.subscribe(async status=>{
       if(status==="SUBSCRIBED"){
