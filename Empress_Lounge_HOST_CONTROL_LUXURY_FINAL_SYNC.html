@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Empress Lounge — Host Control</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#020a18;color:#fff;font-family:Arial,sans-serif}
+body{background:radial-gradient(circle at 50% 0,#123d73 0,#071a36 38%,#020812 100%)}
+.wrap{max-width:1250px;margin:auto;padding:22px}
+.top{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #f1c65a;padding-bottom:16px}
+h1{margin:0;font-family:Georgia,serif;letter-spacing:.08em;font-size:30px}.sub{color:#f5d98a;font-weight:800;letter-spacing:.14em;font-size:12px;margin-top:5px}
+.sync{border:1px solid #f1c65a;border-radius:999px;padding:9px 14px;font-weight:900;font-size:12px}.online{color:#5ff0b8}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-top:18px}
+.card{background:linear-gradient(145deg,rgba(10,35,72,.98),rgba(3,13,29,.98));border:1px solid #b88b2e;border-radius:18px;padding:18px;box-shadow:0 12px 30px #0008}
+.card h2{font-size:14px;letter-spacing:.16em;color:#f7d98c;margin:0 0 14px}
+.selector{display:grid;grid-template-columns:1fr 1fr;gap:10px}.selector select,.btn{width:100%;padding:13px;border-radius:10px;border:1px solid #d7ae48;background:#0a2c59;color:#fff;font-weight:900}
+.puzzle{font-family:Georgia,serif;font-size:30px;line-height:1.35;text-align:center;padding:22px;border-radius:14px;background:linear-gradient(145deg,#075d49,#087d62);border:2px solid #e4c35e;min-height:120px;display:flex;align-items:center;justify-content:center}
+.letters{display:grid;grid-template-columns:repeat(13,1fr);gap:6px;margin-top:14px}.letter{padding:11px 0;border-radius:7px;border:1px solid #e2bf59;background:#103a70;color:#fff;font-weight:900}.letter.used{background:#303642;color:#777;border-color:#555}.letter.hit{background:#087d62;color:#fff3bd}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.gold{background:#6f5012}.royal{background:#143f78}.danger{background:#57232b}.wide{grid-column:1/-1}
+.scores{display:grid;grid-template-columns:1fr 1fr;gap:12px}.score{text-align:center;border:1px solid #d4ad4d;border-radius:14px;padding:15px}.score strong{display:block;color:#f8dc91;letter-spacing:.1em}.score b{font-size:42px}
+.answer{font-family:Georgia,serif;font-size:24px;color:#fff4c8;text-align:center;padding:12px;min-height:34px}
+.hint{color:#aab8cc;font-size:12px;line-height:1.5;margin-top:12px}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.letters{grid-template-columns:repeat(9,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>♛ EMPRESS LOUNGE — HOST CONTROL</h1><div class="sub">WHEEL OF FORTUNE • PRIVATE HOST BOARD</div></div>
+    <div id="sync" class="sync">○ CONNECTING</div>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>GAME BOARD</h2>
+      <div class="selector">
+        <select id="roundSelect"></select>
+        <select id="puzzleSelect"></select>
+      </div>
+      <div style="margin-top:12px;color:#f5d98a;font-weight:900" id="meta"></div>
+      <div class="puzzle" id="puzzle"></div>
+      <div class="letters" id="letters"></div>
+      <div class="controls">
+        <button class="btn" onclick="prevPuzzle()">◀ PREVIOUS</button>
+        <button class="btn" onclick="nextPuzzle()">NEXT ▶</button>
+        <button class="btn wide" onclick="solve()">REVEAL / SOLVE</button>
+        <button class="btn gold" onclick="addScore('gold',25)">+25 TEAM GOLD</button>
+        <button class="btn royal" onclick="addScore('royal',25)">+25 TEAM ROYAL</button>
+        <button class="btn gold" onclick="addScore('gold',-25)">−25 TEAM GOLD</button>
+        <button class="btn royal" onclick="addScore('royal',-25)">−25 TEAM ROYAL</button>
+        <button class="btn danger wide" onclick="resetGame()">RESET GAME</button>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h2>PRIVATE ANSWER KEY</h2>
+      <div class="answer" id="answer"></div>
+      <div class="hint">Only the host board shows the full answer. The audience receives the game state, not this answer panel.</div>
+      <hr style="border-color:#25466e;margin:18px 0">
+      <h2>SCOREBOARD</h2>
+      <div class="scores">
+        <div class="score"><strong>TEAM GOLD</strong><b id="gold">0</b></div>
+        <div class="score"><strong>TEAM ROYAL</strong><b id="royal">0</b></div>
+      </div>
+      <hr style="border-color:#25466e;margin:18px 0">
+      <h2>HOST STATUS</h2>
+      <div id="status" class="hint">Connecting to the live audience channel…</div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL="https://wzckrxbcnoizczzuzgzm.supabase.co";
+const SUPABASE_KEY="sb_publishable_95xi48gWmuRjcuz7LrouOQ_AI4DcnFD";
+const CHANNEL="empress-board-final-luxury";
+const KEY="EMPRESS_LOUNGE_WHEEL_LUXURY_FINAL";
+const puzzles=[
+["PEOPLE","THE EMPRESS"],["PEOPLE","GOOD VIBES"],["PEOPLE","GREAT CONVERSATIONS"],["PEOPLE","BEST FRIEND"],["PEOPLE","TRUE CONFIDENCE"],["PEOPLE","KIND HEART"],["PEOPLE","THE LIFE OF THE PARTY"],["PEOPLE","SOCIAL BUTTERFLY"],["PEOPLE","BORN LEADER"],["PEOPLE","GOOD ENERGY"],["PEOPLE","QUEEN ENERGY"],["PEOPLE","REAL ONE"],["PEOPLE","THE HOST WITH THE MOST"],["PEOPLE","CLASS ACT"],["PEOPLE","BIG PERSONALITY"],["PEOPLE","NATURAL CHARM"],["PEOPLE","BETTER TOGETHER"],["PEOPLE","MAIN CHARACTER"],["PEOPLE","GOOD COMPANY"],["PEOPLE","EMBRACE YOURSELF"],
+["PHRASES","KEEP IT REAL"],["PHRASES","SAY WHAT YOU MEAN"],["PHRASES","READ THE ROOM"],["PHRASES","TRUST YOUR GUT"],["PHRASES","PROTECT YOUR PEACE"],["PHRASES","LET THAT SINK IN"],["PHRASES","THAT PART"],["PHRASES","YOU ALREADY KNOW"],["PHRASES","NO HARD FEELINGS"],["PHRASES","WE LOVE TO SEE IT"],["PHRASES","GOOD THINGS TAKE TIME"],["PHRASES","CHOOSE YOUR WORDS"],["PHRASES","KEEP THE SAME ENERGY"],["PHRASES","THAT IS THE TEA"],["PHRASES","SPEAK YOUR TRUTH"],["PHRASES","MAKE IT MAKE SENSE"],["PHRASES","KNOW YOUR WORTH"],["PHRASES","MOVE WITH PURPOSE"],["PHRASES","OWN YOUR POWER"],["PHRASES","CROWN YOURSELF"],
+["THINGS","GOLDEN CROWN"],["THINGS","VELVET LOUNGE CHAIR"],["THINGS","TROPICAL PALM"],["THINGS","MYSTERY PRIZE"],["THINGS","GAME NIGHT"],["THINGS","LUXURY LOUNGE"],["THINGS","SPARKLING LIGHTS"],["THINGS","ROYAL TREATMENT"],["THINGS","BIG WIN"],["THINGS","THE JACKPOT"],["THINGS","GOLDEN MOMENT"],["THINGS","GOOD TIMES"],["THINGS","PARTY LIGHTS"],["THINGS","CONVERSATION CARD"],["THINGS","SECRET WORD"],["THINGS","FINAL ROUND"],["THINGS","EMPIRE OF FUN"],["THINGS","WINNING MOMENT"],["THINGS","THE GRAND PRIZE"],["THINGS","TAKE THE CROWN"]
+];
+let state={i:0,used:[],gold:0,royal:0,reveal:false};
+const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let channel;
+
+function render(){
+ const [cat,answer]=puzzles[state.i], round=Math.floor(state.i/20)+1, n=state.i%20+1;
+ document.getElementById("meta").textContent=`ROUND ${round}  •  CATEGORY: ${cat}  •  PUZZLE ${n} OF 20`;
+ document.getElementById("answer").textContent=answer;
+ document.getElementById("gold").textContent=state.gold;
+ document.getElementById("royal").textContent=state.royal;
+ document.getElementById("puzzle").textContent=answer.split("").map(ch=>ch===" "?"  ":state.reveal||state.used.includes(ch)?ch:"_").join(" ");
+ document.getElementById("letters").innerHTML="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(ch=>`<button class="letter ${state.used.includes(ch)?'used':''}" onclick="pick('${ch}')" ${state.used.includes(ch)?'disabled':''}>${ch}</button>`).join("");
+ document.getElementById("puzzleSelect").value=state.i;
+ document.getElementById("roundSelect").value=round;
+}
+function publish(){localStorage.setItem(KEY,JSON.stringify(state));render();if(channel)channel.send({type:"broadcast",event:"state",payload:state}).catch(()=>{})}
+function pick(ch){if(!state.used.includes(ch)){state.used.push(ch);publish()}}
+function solve(){state.reveal=true;publish()}
+function addScore(team,n){state[team]=Math.max(0,state[team]+n);publish()}
+function nextPuzzle(){state.i=(state.i+1)%puzzles.length;state.used=[];state.reveal=false;publish()}
+function prevPuzzle(){state.i=(state.i-1+puzzles.length)%puzzles.length;state.used=[];state.reveal=false;publish()}
+function resetGame(){if(confirm("Reset scores, letters, and puzzle to Round 1?")){state={i:0,used:[],gold:0,royal:0,reveal:false};publish()}}
+function fillSelects(){
+ document.getElementById("puzzleSelect").innerHTML=puzzles.map((p,i)=>`<option value="${i}">R${Math.floor(i/20)+1} • P${i%20+1} • ${p[1]}</option>`).join("");
+ document.getElementById("roundSelect").innerHTML=[1,2,3].map(r=>`<option value="${r}">ROUND ${r} • 20 PUZZLES</option>`).join("");
+ document.getElementById("puzzleSelect").onchange=e=>{state.i=+e.target.value;state.used=[];state.reveal=false;publish()};
+ document.getElementById("roundSelect").onchange=e=>{state.i=(+e.target.value-1)*20;state.used=[];state.reveal=false;publish()};
+}
+async function init(){
+ try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved)state=saved}catch(e){}
+ fillSelects();render();
+ channel=client.channel(CHANNEL,{config:{broadcast:{self:false,ack:true}}});
+ channel.on("broadcast",{event:"state"},({payload})=>{state=payload;render()});
+ channel.on("broadcast",{event:"request_state"},async()=>{try{await channel.send({type:"broadcast",event:"state",payload:state})}catch(e){}});
+ channel.on("presence",{event:"sync"},()=>{});
+ await channel.subscribe(status=>{
+   const el=document.getElementById("sync"), st=document.getElementById("status");
+   if(status==="SUBSCRIBED"){el.textContent="● LIVE SYNC";el.classList.add("online");st.textContent="Connected. Host controls are live."}
+   else{el.textContent="○ "+status;st.textContent="Waiting for live connection…"}
+ });
+}
+init();
+</script>
+</body>
+</html>
