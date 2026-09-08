@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Empress Lounge — Audience Board</title>
+<style>
+:root{
+  --navy:#06152d; --blue:#0b2e63; --blue2:#164a91;
+  --emerald:#087b62; --emerald2:#0dbb88;
+  --gold:#f4c85b; --gold2:#ffe7a0; --cream:#fff8dc;
+  --dark:#030914;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020817;color:white;font-family:Georgia,"Times New Roman",serif}
+body{
+  background:
+    radial-gradient(circle at 50% 42%,rgba(17,118,107,.35),transparent 32%),
+    radial-gradient(circle at 12% 20%,rgba(39,93,175,.28),transparent 25%),
+    radial-gradient(circle at 88% 20%,rgba(39,93,175,.28),transparent 25%),
+    linear-gradient(180deg,#071a38 0%,#082f67 48%,#031126 100%);
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background:
+    linear-gradient(105deg,transparent 0 18%,rgba(255,220,126,.08) 20%,transparent 23% 77%,rgba(255,220,126,.08) 80%,transparent 82%),
+    radial-gradient(ellipse at 50% 100%,rgba(255,211,100,.22),transparent 42%);
+}
+.stage{height:100vh;width:100vw;padding:1.2vh 1.4vw;display:flex;flex-direction:column;gap:1vh}
+.goldline{height:4px;background:linear-gradient(90deg,transparent,var(--gold),#fff4c0,var(--gold),transparent);box-shadow:0 0 14px rgba(244,200,91,.8)}
+.header{display:grid;grid-template-columns:24% 52% 24%;align-items:center;gap:1vw}
+.score{
+  min-height:11vh;border:2px solid var(--gold);border-radius:18px;
+  background:linear-gradient(145deg,rgba(7,31,71,.96),rgba(2,13,32,.94));
+  box-shadow:inset 0 0 25px rgba(30,139,150,.2),0 0 20px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;overflow:hidden
+}
+.score:after{content:"";position:absolute;inset:4px;border:1px solid rgba(255,231,160,.28);border-radius:13px;pointer-events:none}
+.score .team{font-family:Arial,sans-serif;font-weight:900;letter-spacing:.18em;font-size:clamp(12px,1.3vw,22px);color:var(--gold2)}
+.score .num{font-family:Arial,sans-serif;font-size:clamp(28px,3.2vw,58px);font-weight:900;line-height:1;color:#fff;text-shadow:0 0 12px rgba(255,231,160,.4)}
+.brand{text-align:center;line-height:.9}
+.brand .small{font-family:Arial,sans-serif;letter-spacing:.35em;font-size:clamp(11px,1vw,17px);font-weight:800;color:var(--gold2)}
+.brand h1{margin:.35vh 0;font-size:clamp(28px,3.8vw,68px);font-weight:900;letter-spacing:.06em;text-shadow:0 4px 0 #063a32,0 0 18px rgba(244,200,91,.55)}
+.brand h2{margin:0;font-family:Arial,sans-serif;font-size:clamp(13px,1.45vw,25px);letter-spacing:.38em;color:#fff5cc}
+.crown{color:var(--gold);font-size:clamp(20px,2.2vw,40px);text-shadow:0 0 16px rgba(244,200,91,.8)}
+.info{
+  display:flex;justify-content:center;align-items:center;gap:1.2vw;
+  font-family:Arial,sans-serif;font-weight:900;letter-spacing:.08em;font-size:clamp(10px,1vw,17px)
+}
+.badge{padding:.65vh 1vw;border:1px solid var(--gold);border-radius:999px;background:rgba(2,18,43,.75);box-shadow:inset 0 0 12px rgba(244,200,91,.12)}
+.main{flex:1;min-height:0;display:grid;grid-template-columns:13% 74% 13%;gap:1vw;align-items:stretch}
+.rail{display:flex;flex-direction:column;justify-content:space-around;gap:1vh}
+.plaque{
+  min-height:10vh;border:2px solid var(--gold);border-radius:14px;
+  background:linear-gradient(145deg,#092d60,#06203e);
+  box-shadow:inset 0 0 22px rgba(16,190,141,.16),0 8px 18px rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;text-align:center;padding:1vh .5vw;
+  font-family:Arial,sans-serif;font-size:clamp(9px,.9vw,15px);font-weight:900;letter-spacing:.12em;color:#fff3c6
+}
+.plaque b{display:block;color:var(--emerald2);font-size:1.12em;margin-bottom:.35em}
+.center{display:flex;flex-direction:column;min-height:0;gap:.8vh}
+.meta{display:flex;justify-content:center;gap:.8vw;flex-wrap:wrap;font-family:Arial,sans-serif}
+.meta span{padding:.55vh 1vw;border-radius:8px;border:1px solid rgba(244,200,91,.75);background:rgba(3,17,39,.82);font-weight:900;font-size:clamp(9px,.9vw,15px);letter-spacing:.08em}
+.puzzle-wrap{
+  flex:1;min-height:0;padding:.7vw;border:3px solid var(--gold);border-radius:22px;
+  background:linear-gradient(145deg,#b98423,#ffe49a 8%,#6e4a13 18%,#d5a43b 50%,#5e3d0e 82%,#f8d875);
+  box-shadow:0 0 28px rgba(244,200,91,.25),0 14px 30px rgba(0,0,0,.5)
+}
+.puzzle{
+  height:100%;border-radius:16px;border:2px solid #d7b45d;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(37,193,145,.24),transparent 45%),
+    linear-gradient(145deg,#07543f,#087b62 48%,#043b30);
+  padding:1.2vh 1vw;display:flex;flex-direction:column;justify-content:center;box-shadow:inset 0 0 50px rgba(0,0,0,.35)
+}
+.word{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:clamp(4px,.45vw,10px);row-gap:clamp(8px,.8vh,14px)}
+.tile{
+  width:clamp(26px,3vw,60px);height:clamp(34px,5.4vh,62px);
+  border-radius:5px;border:2px solid #d7b45d;
+  background:linear-gradient(180deg,#fffef0,#eee5c0);
+  color:#082b31;display:flex;align-items:center;justify-content:center;
+  font-family:Arial,sans-serif;font-size:clamp(18px,2vw,38px);font-weight:900;
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.12),0 2px 6px rgba(0,0,0,.4)
+}
+.tile.hidden{color:transparent;background:linear-gradient(180deg,#0b6e58,#064b3e)}
+.tile.space{background:transparent;border:0;box-shadow:none;width:clamp(10px,1.2vw,24px)}
+.tile.revealed{background:linear-gradient(180deg,#fff9dc,#e9d69a);text-shadow:0 1px 0 white}
+.crownrow{text-align:center;color:var(--gold2);font-size:clamp(11px,1vw,18px);letter-spacing:.35em;margin:.6vh 0}
+.keyboard{
+  display:grid;grid-template-columns:repeat(13,1fr);gap:.45vw;margin-top:.7vh
+}
+.key{
+  height:clamp(27px,4vh,46px);border:2px solid var(--gold);border-radius:7px;
+  background:linear-gradient(145deg,#113e7a,#09224c);color:white;
+  font-family:Arial,sans-serif;font-weight:900;font-size:clamp(11px,1.1vw,20px);
+  box-shadow:inset 0 0 10px rgba(255,255,255,.08),0 3px 8px rgba(0,0,0,.35)
+}
+.key.used{background:#2a3140;color:#777;border-color:#666;box-shadow:none}
+.footer{
+  min-height:5vh;border-top:2px solid var(--gold);display:flex;align-items:center;justify-content:center;
+  font-family:Arial,sans-serif;font-weight:900;letter-spacing:.25em;color:var(--gold2);font-size:clamp(9px,1vw,16px)
+}
+.hiddenHost{display:none}
+body.host .hiddenHost{display:block}
+.host{
+  position:fixed;right:1vw;bottom:7vh;width:min(320px,28vw);max-height:82vh;overflow:auto;
+  z-index:20;background:rgba(2,10,23,.96);border:2px solid var(--gold);border-radius:16px;padding:12px;
+  font-family:Arial,sans-serif;box-shadow:0 15px 40px rgba(0,0,0,.7)
+}
+.host h3{margin:0 0 8px;color:var(--gold2)}
+.host button,.host select{width:100%;margin:4px 0;padding:9px;border-radius:8px;border:1px solid var(--gold);background:#092958;color:white;font-weight:800}
+@media(max-width:900px){
+ .main{grid-template-columns:1fr}.rail{display:none}.header{grid-template-columns:22% 56% 22%}
+ .keyboard{grid-template-columns:repeat(9,1fr)}
+ .score{min-height:9vh}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="goldline"></div>
+  <header class="header">
+    <div class="score"><div class="team">TEAM GOLD</div><div id="gold" class="num">0</div></div>
+    <div class="brand">
+      <div class="crown">♛</div><div class="small">WELCOME TO THE</div>
+      <h1>EMPRESS LOUNGE</h1><h2>WHEEL OF FORTUNE</h2>
+    </div>
+    <div class="score"><div class="team">TEAM ROYAL</div><div id="royal" class="num">0</div></div>
+  </header>
+
+  <div class="info">
+    <span class="badge" id="round">ROUND 1</span>
+    <span class="badge" id="category">CATEGORY: PEOPLE</span>
+    <span class="badge" id="puzzleNo">PUZZLE 1 OF 20</span>
+  </div>
+
+  <main class="main">
+    <aside class="rail">
+      <div class="plaque"><div><b>GOOD VIBES</b>KEEP IT FUN</div></div>
+      <div class="plaque"><div><b>GREAT PEOPLE</b>BIG ENERGY</div></div>
+      <div class="plaque"><div><b>BETTER CONVERSATIONS</b>PLAY • VIBE • WIN</div></div>
+    </aside>
+
+    <section class="center">
+      <div class="puzzle-wrap"><div class="puzzle">
+        <div class="crownrow">♛ &nbsp; ♛ &nbsp; ♛ &nbsp; ♛ &nbsp; ♛</div>
+        <div id="word" class="word"></div>
+        <div class="crownrow">EMPRESS LOUNGE • EMPIRE OF FUN • EMPRESS LOUNGE</div>
+      </div></div>
+      <div id="keyboard" class="keyboard"></div>
+    </section>
+
+    <aside class="rail">
+      <div class="plaque"><div><b>SPIN</b>YOUR TURN</div></div>
+      <div class="plaque"><div><b>GUESS</b>CALL IT</div></div>
+      <div class="plaque"><div><b>SOLVE</b>TAKE THE CROWN</div></div>
+    </aside>
+  </main>
+
+  <footer class="footer">EMPRESS LOUNGE&nbsp;&nbsp;•&nbsp;&nbsp;PLAY&nbsp;&nbsp;•&nbsp;&nbsp;VIBE&nbsp;&nbsp;•&nbsp;&nbsp;WIN</footer>
+</div>
+
+<div class="host hiddenHost" id="host">
+  <h3>HOST CONTROL</h3>
+  <select id="puzzleSelect"></select>
+  <button onclick="prevPuzzle()">◀ PREVIOUS</button>
+  <button onclick="nextPuzzle()">NEXT ▶</button>
+  <div id="hostLetters"></div>
+  <button onclick="solve()">REVEAL / SOLVE</button>
+  <button onclick="score('gold',25)">+25 GOLD</button>
+  <button onclick="score('royal',25)">+25 ROYAL</button>
+  <button onclick="score('gold',-25)">−25 GOLD</button>
+  <button onclick="score('royal',-25)">−25 ROYAL</button>
+</div>
+
+<script>
+const puzzles=[
+["PEOPLE","THE EMPRESS","R1"],["PEOPLE","GOOD VIBES","R1"],["PEOPLE","GREAT CONVERSATIONS","R1"],
+["PEOPLE","BEST FRIEND","R1"],["PEOPLE","TRUE CONFIDENCE","R1"],["PEOPLE","KIND HEART","R1"],
+["PEOPLE","THE LIFE OF THE PARTY","R1"],["PEOPLE","SOCIAL BUTTERFLY","R1"],["PEOPLE","BORN LEADER","R1"],
+["PEOPLE","GOOD ENERGY","R1"],["PEOPLE","QUEEN ENERGY","R1"],["PEOPLE","REAL ONE","R1"],
+["PEOPLE","THE HOST WITH THE MOST","R1"],["PEOPLE","CLASS ACT","R1"],["PEOPLE","BIG PERSONALITY","R1"],
+["PEOPLE","NATURAL CHARM","R1"],["PEOPLE","BETTER TOGETHER","R1"],["PEOPLE","MAIN CHARACTER","R1"],
+["PEOPLE","GOOD COMPANY","R1"],["PEOPLE","EMBRACE YOURSELF","R1"],
+["PHRASES","KEEP IT REAL","R2"],["PHRASES","SAY WHAT YOU MEAN","R2"],["PHRASES","READ THE ROOM","R2"],
+["PHRASES","TRUST YOUR GUT","R2"],["PHRASES","PROTECT YOUR PEACE","R2"],["PHRASES","LET THAT SINK IN","R2"],
+["PHRASES","THAT PART","R2"],["PHRASES","YOU ALREADY KNOW","R2"],["PHRASES","NO HARD FEELINGS","R2"],
+["PHRASES","WE LOVE TO SEE IT","R2"],["PHRASES","GOOD THINGS TAKE TIME","R2"],["PHRASES","CHOOSE YOUR WORDS","R2"],
+["PHRASES","KEEP THE SAME ENERGY","R2"],["PHRASES","THAT IS THE TEA","R2"],["PHRASES","SPEAK YOUR TRUTH","R2"],
+["PHRASES","MAKE IT MAKE SENSE","R2"],["PHRASES","KNOW YOUR WORTH","R2"],["PHRASES","MOVE WITH PURPOSE","R2"],
+["PHRASES","OWN YOUR POWER","R2"],["PHRASES","CROWN YOURSELF","R2"],
+["THINGS","GOLDEN CROWN","R3"],["THINGS","VELVET LOUNGE CHAIR","R3"],["THINGS","TROPICAL PALM","R3"],
+["THINGS","MYSTERY PRIZE","R3"],["THINGS","GAME NIGHT","R3"],["THINGS","LUXURY LOUNGE","R3"],
+["THINGS","SPARKLING LIGHTS","R3"],["THINGS","ROYAL TREATMENT","R3"],["THINGS","BIG WIN","R3"],
+["THINGS","THE JACKPOT","R3"],["THINGS","GOLDEN MOMENT","R3"],["THINGS","GOOD TIMES","R3"],
+["THINGS","PARTY LIGHTS","R3"],["THINGS","CONVERSATION CARD","R3"],["THINGS","SECRET WORD","R3"],
+["THINGS","FINAL ROUND","R3"],["THINGS","EMPIRE OF FUN","R3"],["THINGS","WINNING MOMENT","R3"],
+["THINGS","THE GRAND PRIZE","R3"],["THINGS","TAKE THE CROWN","R3"]
+];
+
+let state={i:0,used:[],gold:0,royal:0,reveal:false};
+const KEY="EMPRESS_LOUNGE_AUDIENCE_BOARD_VFINAL";
+const BC="EMPRESS_LOUNGE_AUDIENCE_BOARD_CHANNEL";
+const bc=("BroadcastChannel" in window)?new BroadcastChannel(BC):null;
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(state));
+ if(bc)bc.postMessage(state);
+ render();
+}
+function load(s){if(!s)return;state=s;render()}
+if(bc)bc.onmessage=e=>load(e.data);
+try{let s=JSON.parse(localStorage.getItem(KEY));if(s)state=s}catch(e){}
+if(new URLSearchParams(location.search).get("host")==="1")document.body.classList.add("host");
+
+function render(){
+ const p=puzzles[state.i], answer=p[1], round=Math.floor(state.i/20)+1, within=state.i%20+1;
+ document.getElementById("gold").textContent=state.gold;
+ document.getElementById("royal").textContent=state.royal;
+ document.getElementById("round").textContent="ROUND "+round;
+ document.getElementById("category").textContent="CATEGORY: "+p[0];
+ document.getElementById("puzzleNo").textContent="PUZZLE "+within+" OF 20";
+ const w=document.getElementById("word");w.innerHTML="";
+ answer.split("").forEach((ch,idx)=>{
+   const t=document.createElement("div");
+   if(ch===" "){t.className="tile space";t.innerHTML="";w.appendChild(t);return}
+   t.className="tile "+(state.reveal||state.used.includes(ch)?"revealed":"hidden");
+   t.textContent=(state.reveal||state.used.includes(ch))?ch:"";
+   w.appendChild(t);
+ });
+ const kb=document.getElementById("keyboard");kb.innerHTML="";
+ "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(ch=>{
+   const b=document.createElement("button");b.className="key "+(state.used.includes(ch)?"used":"");b.textContent=ch;
+   if(document.body.classList.contains("host")&&!state.used.includes(ch))b.onclick=()=>{state.used.push(ch);save()};
+   else b.disabled=true;
+   kb.appendChild(b);
+ });
+ const sel=document.getElementById("puzzleSelect");
+ if(sel){sel.innerHTML=puzzles.map((x,n)=>`<option value="${n}">Round ${Math.floor(n/20)+1} • Puzzle ${(n%20)+1} • ${x[1]}</option>`).join("");sel.value=state.i}
+ const hl=document.getElementById("hostLetters");
+ if(hl)hl.innerHTML="<b>USED:</b> "+(state.used.join(" ")||"none");
+}
+function selectPuzzle(){state.i=+document.getElementById("puzzleSelect").value;state.used=[];state.reveal=false;save()}
+function prevPuzzle(){state.i=(state.i+59)%60;state.used=[];state.reveal=false;save()}
+function nextPuzzle(){state.i=(state.i+1)%60;state.used=[];state.reveal=false;save()}
+function solve(){state.reveal=true;save()}
+function score(team,n){state[team]=Math.max(0,state[team]+n);save()}
+document.addEventListener("change",e=>{if(e.target.id==="puzzleSelect")selectPuzzle()});
+render();
+</script>
+</body>
+</html>
